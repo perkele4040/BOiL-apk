@@ -1,5 +1,3 @@
-package com.company;
-
 public class Supplier {
     int supply;
     int sellingPrice;

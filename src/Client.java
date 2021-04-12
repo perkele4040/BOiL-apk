@@ -1,5 +1,3 @@
-package com.company;
-
 public class Client {
     int demand;
     int buyingPrice;
@@ -9,7 +7,6 @@ public class Client {
         this.demand = demand;
         this.buyingPrice = buyingPrice;
         this.clientNr = clientNr;
-        System.out.println("added Client no "+this.clientNr);
     }
     public void printData()
     {
