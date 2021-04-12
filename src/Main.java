@@ -75,10 +75,7 @@ public class Main {
 		//copying the income table to enable changes in data
 		Income[][] tempIncomeTable = new Income[nSuppliers+1][nClients+1];
 		for(int i=0; i<nSuppliers+1; i++)
-			for(int j=0; j<nClients+1; j++)
-			{
-				tempIncomeTable[i][j] = incomeTable[i][j];
-			}
+			System.arraycopy(incomeTable[i], 0, tempIncomeTable[i], 0, nClients + 1);
 
 		while(1==1) {
 			//finding a cell with highest income
@@ -180,6 +177,59 @@ public class Main {
 			}
 			System.out.println();
 		}
+
+		int[] alfas = new int[nSuppliers+1];
+		for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
+		int[] betas = new int[nClients+1];
+		for(int j=0; j<nClients+1; j++) betas[j] = -10000;
+		alfas[0] = 0;
+		for(int i=0; i<nSuppliers+1; i++)
+			for(int j=0; j<nClients+1; j++)
+				tempIncomeTable[i][j].done = false;
+
+		int doneCounter=1;
+		while( doneCounter < (nClients+nSuppliers+2) )
+		for(int i=0; i<nSuppliers+1; i++)
+			for(int j=0; j<nClients+1; j++)
+			{
+				if(!tempIncomeTable[i][j].done && tempIncomeTable[i][j].amountSent!=-1)
+				{
+					if(alfas[i]!=-10000)
+					{
+
+						betas[j] = tempIncomeTable[i][j].income - alfas[i];
+						System.out.println("zmieniłem betas nr "+j);
+						tempIncomeTable[i][j].done=true;
+						doneCounter++;
+					}
+					else if(betas[j]!=-10000)
+					{
+						alfas[i] = tempIncomeTable[i][j].income - betas[j];
+						System.out.println("zmieniłem alfa nr "+i);
+						tempIncomeTable[i][j].done=true;
+						doneCounter++;
+					}
+
+					/*for(int k=0; k<nSuppliers+1; k++)
+						tempIncomeTable[k][j].done=true;
+					for(int k=0; k<nClients+1; k++)
+						tempIncomeTable[i][k].done=true;*/
+					System.out.println("alfas:  ");
+					for(int z=0; z<nSuppliers+1; z++) { System.out.print(alfas[z]); System.out.print("   "); }
+					System.out.println("\nbetas:  ");
+					for(int z=0; z<nClients+1; z++) { System.out.print(betas[z]); System.out.print("   "); }
+					System.out.println("\ndoneCounter= "+doneCounter);
+				}
+			}
+
+
+		/*char[][] changesTable = new char[nSuppliers][nClients];
+		for(int i=0; i<nSuppliers; i++)
+			for(int j=0; j<nClients; j++)
+				if(tempIncomeTable[i][j].amountSent!=0)
+					changesTable[i][j] = 'X';
+				else
+					changesTable[i][j] = <char>tempIncomeTable[i][j].income*/
 
     }
 
