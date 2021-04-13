@@ -48,7 +48,7 @@ public class Main {
 		Income[][] incomeTable = new Income[nSuppliers+1][nClients+1];
 		for(int i=0; i<nSuppliers; i++)
 			for(int j=0; j<nClients; j++)
-				incomeTable[i][j] = new Income(clients[j].buyingPrice - suppliers[i].sellingPrice - transportCostTable[i][j], suppliers[i], clients[j]);
+				incomeTable[i][j] = new Income(clients[j].getBuyingPrice() - suppliers[i].getSellingPrice() - transportCostTable[i][j], suppliers[i], clients[j]);
 
 		//test case 2
 		/*incomeTable[0][0] = new Income(3, supplier1, client1);
@@ -62,9 +62,9 @@ public class Main {
 		Supplier overallSupply = new Supplier(0, 0, nSuppliers+1);
 		Client overallDemand = new Client(0, 0, nClients+1);
 		for(int i=0; i<nSuppliers; i++)
-			overallDemand.demand+=suppliers[i].supply;
+			overallDemand.addDemand(suppliers[i].getSupply());
 		for(int j=0; j<nClients; j++)
-			overallSupply.supply+=clients[j].demand;
+			overallSupply.addSupply(clients[j].getDemand());
 
 		for(int i=0; i<nSuppliers; i++)
 			incomeTable[i][nClients] = new Income(0, suppliers[i], overallDemand);
@@ -96,24 +96,24 @@ public class Main {
 				break;
 			System.out.println("wybrano income = "+tempIncome);
 			//computing the amount available to be sent on this path
-			if (tempIncomeTable[iMax][jMax].getWhereFrom().supply > tempIncomeTable[iMax][jMax].getWhereTo().demand)
-				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereTo().demand);
+			if (tempIncomeTable[iMax][jMax].getWhereFrom().getSupply() > tempIncomeTable[iMax][jMax].getWhereTo().getDemand())
+				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereTo().getDemand());
 			else
-				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereFrom().supply);
+				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereFrom().getSupply());
 			tempIncomeTable[iMax][jMax].setDone(true);
 
 			//taking the amount sent on this path from supply/demand
-			tempIncomeTable[iMax][jMax].getWhereFrom().supply -= tempIncomeTable[iMax][jMax].getAmountSent();
-			tempIncomeTable[iMax][jMax].getWhereTo().demand -= tempIncomeTable[iMax][jMax].getAmountSent();
+			tempIncomeTable[iMax][jMax].getWhereFrom().subsSupply(tempIncomeTable[iMax][jMax].getAmountSent());
+			tempIncomeTable[iMax][jMax].getWhereTo().subsDemand(tempIncomeTable[iMax][jMax].getAmountSent());
 
 			//checking if any suppliers/clients have run out of supply/demand
-			if (tempIncomeTable[iMax][jMax].getWhereTo().demand == 0)
+			if (tempIncomeTable[iMax][jMax].getWhereTo().getDemand() == 0)
 				for (int i = 0; i < nSuppliers+1; i++)
 					if (!tempIncomeTable[i][jMax].isDone()) {
 						tempIncomeTable[i][jMax].setAmountSent(-1);
 						tempIncomeTable[i][jMax].setDone(true);
 					}
-			if (tempIncomeTable[iMax][jMax].getWhereFrom().supply == 0)
+			if (tempIncomeTable[iMax][jMax].getWhereFrom().getSupply() == 0)
 				for (int j = 0; j < nClients+1; j++)
 					if (!tempIncomeTable[iMax][j].isDone()) {
 						tempIncomeTable[iMax][j].setAmountSent(-1);
@@ -121,62 +121,36 @@ public class Main {
 					}
 
 			//printing the table for quality control :)
-			System.out.println("Przesłane: ");
-			System.out.println("     "+tempIncomeTable[0][0].getWhereTo().demand+"  "+tempIncomeTable[0][1].getWhereTo().demand+"  "+tempIncomeTable[0][2].getWhereTo().demand+"  "+tempIncomeTable[0][3].getWhereTo().demand);
-			System.out.println("   ------------");
-			for(int i = 0; i < 3; i ++)
-			{
-				System.out.print(tempIncomeTable[i][0].getWhereFrom().supply);
-				System.out.print(" | ");
-				for(int j = 0; j < 4; j++)
-				{
-					System.out.print(tempIncomeTable[i][j].getAmountSent());
-					System.out.print("  ");
-				}
-				System.out.println();
-			}
+			printIncomeTable(tempIncomeTable, nSuppliers, nClients);
 		} //the whole table of real suppliers/clients have been processed
 
 		//splitting the remaining supply/demand between the fictional characters
 		for(int i=0; i<nSuppliers; i++)
 		{
-			if(!tempIncomeTable[i][nClients].isDone() && tempIncomeTable[i][nClients].getWhereFrom().supply > 0)
+			if(!tempIncomeTable[i][nClients].isDone() && tempIncomeTable[i][nClients].getWhereFrom().getSupply() > 0)
 			{
 				tempIncomeTable[i][nClients].setDone(true);
-				tempIncomeTable[i][nClients].addAmountSent(tempIncomeTable[i][nClients].getWhereFrom().supply);
-				tempIncomeTable[i][nClients].getWhereFrom().supply=0;
-				tempIncomeTable[2][nClients].getWhereTo().demand-=incomeTable[i][nClients].getAmountSent();
+				tempIncomeTable[i][nClients].addAmountSent(tempIncomeTable[i][nClients].getWhereFrom().getSupply());
+				tempIncomeTable[i][nClients].getWhereFrom().setSupply(0);
+				tempIncomeTable[2][nClients].getWhereTo().subsDemand(incomeTable[i][nClients].getAmountSent());
 			}
 		}
 		for(int j=0; j<nClients; j++)
 		{
-			if(!tempIncomeTable[nSuppliers][j].isDone() && tempIncomeTable[nSuppliers][j].getWhereTo().demand > 0)
+			if(!tempIncomeTable[nSuppliers][j].isDone() && tempIncomeTable[nSuppliers][j].getWhereTo().getDemand() > 0)
 			{
 				tempIncomeTable[nSuppliers][j].setDone(true);
-				tempIncomeTable[nSuppliers][j].setAmountSent(tempIncomeTable[nSuppliers][j].getWhereTo().demand);
-				tempIncomeTable[nSuppliers][j].getWhereTo().demand=0;
-				tempIncomeTable[nSuppliers][3].getWhereFrom().supply-=tempIncomeTable[nSuppliers][j].getAmountSent();
+				tempIncomeTable[nSuppliers][j].setAmountSent(tempIncomeTable[nSuppliers][j].getWhereTo().getDemand());
+				tempIncomeTable[nSuppliers][j].getWhereTo().setDemand(0);
+				tempIncomeTable[nSuppliers][3].getWhereFrom().subsSupply(tempIncomeTable[nSuppliers][j].getAmountSent());
 			}
 		}
 		tempIncomeTable[nSuppliers][nClients].setDone(true);
-		tempIncomeTable[nSuppliers][nClients].setAmountSent(tempIncomeTable[nSuppliers][nClients].getWhereTo().demand);
-		tempIncomeTable[nSuppliers][nClients].getWhereTo().demand=0;
-		tempIncomeTable[nSuppliers][nClients].getWhereFrom().supply=0;
+		tempIncomeTable[nSuppliers][nClients].setAmountSent(tempIncomeTable[nSuppliers][nClients].getWhereTo().getDemand());
+		tempIncomeTable[nSuppliers][nClients].getWhereTo().setDemand(0);
+		tempIncomeTable[nSuppliers][nClients].getWhereFrom().setSupply(0);
 
-		System.out.println("Przesłane: ");
-		System.out.println("     "+tempIncomeTable[0][0].getWhereTo().demand+"  "+tempIncomeTable[0][1].getWhereTo().demand+"  "+tempIncomeTable[0][2].getWhereTo().demand+"  "+tempIncomeTable[0][3].getWhereTo().demand);
-		System.out.println("   ------------");
-		for(int i = 0; i < 3; i ++)
-		{
-			System.out.print(tempIncomeTable[i][0].getWhereFrom().supply);
-			System.out.print(" | ");
-			for(int j = 0; j < 4; j++)
-			{
-				System.out.print(tempIncomeTable[i][j].getAmountSent());
-				System.out.print("  ");
-			}
-			System.out.println();
-		}
+		printIncomeTable(tempIncomeTable, nSuppliers, nClients);
 
 		int[] alfas = new int[nSuppliers+1];
 		for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
@@ -243,5 +217,28 @@ public class Main {
 		}
 
     }
+
+	public static void printIncomeTable(Income[][] tempIncomeTable, int nSuppliers, int nClients) {
+		System.out.println("Przesłane: ");
+		System.out.print("     ");
+		for(int j=0; j<nClients+1; j++)
+		{
+			System.out.print(tempIncomeTable[0][j].getWhereTo().getDemand());
+			System.out.print("  ");
+		}
+		System.out.println();
+		System.out.println("   ------------");
+		for(int i = 0; i < nSuppliers+1; i ++)
+		{
+			System.out.print(tempIncomeTable[i][0].getWhereFrom().getSupply());
+			System.out.print(" | ");
+			for(int j = 0; j < nClients+1; j++)
+			{
+				System.out.print(tempIncomeTable[i][j].getAmountSent());
+				System.out.print("  ");
+			}
+			System.out.println();
+		}
+	}
 
 }
