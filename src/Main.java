@@ -223,13 +223,24 @@ public class Main {
 			}
 
 
-		/*char[][] changesTable = new char[nSuppliers][nClients];
-		for(int i=0; i<nSuppliers; i++)
-			for(int j=0; j<nClients; j++)
-				if(tempIncomeTable[i][j].amountSent!=0)
-					changesTable[i][j] = 'X';
+		int[][] changesTable = new int[nSuppliers+1][nClients+1];
+		for(int i=0; i<nSuppliers+1; i++)
+			for(int j=0; j<nClients+1; j++) {
+				if (tempIncomeTable[i][j].amountSent != -1)
+					changesTable[i][j] = -10000;
 				else
-					changesTable[i][j] = <char>tempIncomeTable[i][j].income*/
+					changesTable[i][j] = (tempIncomeTable[i][j].income - alfas[i] - betas[j]);
+			}
+		System.out.println("changes: ");
+		for(int i = 0; i < 3; i ++)
+		{
+			for(int j = 0; j < 4; j++)
+			{
+				System.out.print(changesTable[i][j]);
+				System.out.print("  ");
+			}
+			System.out.println();
+		}
 
     }
 
