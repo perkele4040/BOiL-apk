@@ -83,54 +83,54 @@ public class Main {
 			int tempIncome = -10000;
 			for (int i = 0; i < nSuppliers; i++)
 				for (int j = 0; j < nClients; j++) {
-					if (tempIncomeTable[i][j].income > tempIncome && !tempIncomeTable[i][j].done) {
+					if (tempIncomeTable[i][j].getIncome() > tempIncome && !tempIncomeTable[i][j].isDone()) {
 						iMax = i;
 						jMax = j;
-						tempIncome = tempIncomeTable[iMax][jMax].income;
+						tempIncome = tempIncomeTable[iMax][jMax].getIncome();
 					}
 				}
-			System.out.println("wybrano income = "+tempIncome);
+
 
 			//if all cells done = stop looking
 			if (tempIncome == -10000)
 				break;
-
+			System.out.println("wybrano income = "+tempIncome);
 			//computing the amount available to be sent on this path
-			if (tempIncomeTable[iMax][jMax].whereFrom.supply > tempIncomeTable[iMax][jMax].whereTo.demand)
-				tempIncomeTable[iMax][jMax].amountSent = tempIncomeTable[iMax][jMax].whereTo.demand;
+			if (tempIncomeTable[iMax][jMax].getWhereFrom().supply > tempIncomeTable[iMax][jMax].getWhereTo().demand)
+				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereTo().demand);
 			else
-				tempIncomeTable[iMax][jMax].amountSent = tempIncomeTable[iMax][jMax].whereFrom.supply;
-			tempIncomeTable[iMax][jMax].done = true;
+				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereFrom().supply);
+			tempIncomeTable[iMax][jMax].setDone(true);
 
 			//taking the amount sent on this path from supply/demand
-			tempIncomeTable[iMax][jMax].whereFrom.supply -= tempIncomeTable[iMax][jMax].amountSent;
-			tempIncomeTable[iMax][jMax].whereTo.demand -= tempIncomeTable[iMax][jMax].amountSent;
+			tempIncomeTable[iMax][jMax].getWhereFrom().supply -= tempIncomeTable[iMax][jMax].getAmountSent();
+			tempIncomeTable[iMax][jMax].getWhereTo().demand -= tempIncomeTable[iMax][jMax].getAmountSent();
 
 			//checking if any suppliers/clients have run out of supply/demand
-			if (tempIncomeTable[iMax][jMax].whereTo.demand == 0)
+			if (tempIncomeTable[iMax][jMax].getWhereTo().demand == 0)
 				for (int i = 0; i < nSuppliers+1; i++)
-					if (!tempIncomeTable[i][jMax].done) {
-						tempIncomeTable[i][jMax].amountSent = -1;
-						tempIncomeTable[i][jMax].done = true;
+					if (!tempIncomeTable[i][jMax].isDone()) {
+						tempIncomeTable[i][jMax].setAmountSent(-1);
+						tempIncomeTable[i][jMax].setDone(true);
 					}
-			if (tempIncomeTable[iMax][jMax].whereFrom.supply == 0)
+			if (tempIncomeTable[iMax][jMax].getWhereFrom().supply == 0)
 				for (int j = 0; j < nClients+1; j++)
-					if (!tempIncomeTable[iMax][j].done) {
-						tempIncomeTable[iMax][j].amountSent = -1;
-						tempIncomeTable[iMax][j].done = true;
+					if (!tempIncomeTable[iMax][j].isDone()) {
+						tempIncomeTable[iMax][j].setAmountSent(-1);
+						tempIncomeTable[iMax][j].setDone(true);
 					}
 
 			//printing the table for quality control :)
 			System.out.println("Przesłane: ");
-			System.out.println("     "+tempIncomeTable[0][0].whereTo.demand+"  "+tempIncomeTable[0][1].whereTo.demand+"  "+tempIncomeTable[0][2].whereTo.demand+"  "+tempIncomeTable[0][3].whereTo.demand);
+			System.out.println("     "+tempIncomeTable[0][0].getWhereTo().demand+"  "+tempIncomeTable[0][1].getWhereTo().demand+"  "+tempIncomeTable[0][2].getWhereTo().demand+"  "+tempIncomeTable[0][3].getWhereTo().demand);
 			System.out.println("   ------------");
 			for(int i = 0; i < 3; i ++)
 			{
-				System.out.print(tempIncomeTable[i][0].whereFrom.supply);
+				System.out.print(tempIncomeTable[i][0].getWhereFrom().supply);
 				System.out.print(" | ");
 				for(int j = 0; j < 4; j++)
 				{
-					System.out.print(tempIncomeTable[i][j].amountSent);
+					System.out.print(tempIncomeTable[i][j].getAmountSent());
 					System.out.print("  ");
 				}
 				System.out.println();
@@ -140,39 +140,39 @@ public class Main {
 		//splitting the remaining supply/demand between the fictional characters
 		for(int i=0; i<nSuppliers; i++)
 		{
-			if(!tempIncomeTable[i][nClients].done && tempIncomeTable[i][nClients].whereFrom.supply > 0)
+			if(!tempIncomeTable[i][nClients].isDone() && tempIncomeTable[i][nClients].getWhereFrom().supply > 0)
 			{
-				tempIncomeTable[i][nClients].done=true;
-				tempIncomeTable[i][nClients].amountSent+=tempIncomeTable[i][nClients].whereFrom.supply;
-				tempIncomeTable[i][nClients].whereFrom.supply=0;
-				tempIncomeTable[2][nClients].whereTo.demand-=incomeTable[i][nClients].amountSent;
+				tempIncomeTable[i][nClients].setDone(true);
+				tempIncomeTable[i][nClients].addAmountSent(tempIncomeTable[i][nClients].getWhereFrom().supply);
+				tempIncomeTable[i][nClients].getWhereFrom().supply=0;
+				tempIncomeTable[2][nClients].getWhereTo().demand-=incomeTable[i][nClients].getAmountSent();
 			}
 		}
 		for(int j=0; j<nClients; j++)
 		{
-			if(!tempIncomeTable[nSuppliers][j].done && tempIncomeTable[nSuppliers][j].whereTo.demand > 0)
+			if(!tempIncomeTable[nSuppliers][j].isDone() && tempIncomeTable[nSuppliers][j].getWhereTo().demand > 0)
 			{
-				tempIncomeTable[nSuppliers][j].done=true;
-				tempIncomeTable[nSuppliers][j].amountSent=tempIncomeTable[nSuppliers][j].whereTo.demand;
-				tempIncomeTable[nSuppliers][j].whereTo.demand=0;
-				tempIncomeTable[nSuppliers][3].whereFrom.supply-=tempIncomeTable[nSuppliers][j].amountSent;
+				tempIncomeTable[nSuppliers][j].setDone(true);
+				tempIncomeTable[nSuppliers][j].setAmountSent(tempIncomeTable[nSuppliers][j].getWhereTo().demand);
+				tempIncomeTable[nSuppliers][j].getWhereTo().demand=0;
+				tempIncomeTable[nSuppliers][3].getWhereFrom().supply-=tempIncomeTable[nSuppliers][j].getAmountSent();
 			}
 		}
-		tempIncomeTable[nSuppliers][nClients].done=true;
-		tempIncomeTable[nSuppliers][nClients].amountSent = tempIncomeTable[nSuppliers][nClients].whereTo.demand;
-		tempIncomeTable[nSuppliers][nClients].whereTo.demand=0;
-		tempIncomeTable[nSuppliers][nClients].whereFrom.supply=0;
+		tempIncomeTable[nSuppliers][nClients].setDone(true);
+		tempIncomeTable[nSuppliers][nClients].setAmountSent(tempIncomeTable[nSuppliers][nClients].getWhereTo().demand);
+		tempIncomeTable[nSuppliers][nClients].getWhereTo().demand=0;
+		tempIncomeTable[nSuppliers][nClients].getWhereFrom().supply=0;
 
 		System.out.println("Przesłane: ");
-		System.out.println("     "+tempIncomeTable[0][0].whereTo.demand+"  "+tempIncomeTable[0][1].whereTo.demand+"  "+tempIncomeTable[0][2].whereTo.demand+"  "+tempIncomeTable[0][3].whereTo.demand);
+		System.out.println("     "+tempIncomeTable[0][0].getWhereTo().demand+"  "+tempIncomeTable[0][1].getWhereTo().demand+"  "+tempIncomeTable[0][2].getWhereTo().demand+"  "+tempIncomeTable[0][3].getWhereTo().demand);
 		System.out.println("   ------------");
 		for(int i = 0; i < 3; i ++)
 		{
-			System.out.print(tempIncomeTable[i][0].whereFrom.supply);
+			System.out.print(tempIncomeTable[i][0].getWhereFrom().supply);
 			System.out.print(" | ");
 			for(int j = 0; j < 4; j++)
 			{
-				System.out.print(tempIncomeTable[i][j].amountSent);
+				System.out.print(tempIncomeTable[i][j].getAmountSent());
 				System.out.print("  ");
 			}
 			System.out.println();
@@ -185,28 +185,28 @@ public class Main {
 		alfas[0] = 0;
 		for(int i=0; i<nSuppliers+1; i++)
 			for(int j=0; j<nClients+1; j++)
-				tempIncomeTable[i][j].done = false;
+				tempIncomeTable[i][j].setDone(false);
 
 		int doneCounter=1;
 		while( doneCounter < (nClients+nSuppliers+2) )
 		for(int i=0; i<nSuppliers+1; i++)
 			for(int j=0; j<nClients+1; j++)
 			{
-				if(!tempIncomeTable[i][j].done && tempIncomeTable[i][j].amountSent!=-1)
+				if(!tempIncomeTable[i][j].isDone() && tempIncomeTable[i][j].getAmountSent()!=-1)
 				{
 					if(alfas[i]!=-10000)
 					{
 
-						betas[j] = tempIncomeTable[i][j].income - alfas[i];
+						betas[j] = tempIncomeTable[i][j].getIncome() - alfas[i];
 						System.out.println("zmieniłem betas nr "+j);
-						tempIncomeTable[i][j].done=true;
+						tempIncomeTable[i][j].setDone(true);
 						doneCounter++;
 					}
 					else if(betas[j]!=-10000)
 					{
-						alfas[i] = tempIncomeTable[i][j].income - betas[j];
+						alfas[i] = tempIncomeTable[i][j].getIncome() - betas[j];
 						System.out.println("zmieniłem alfa nr "+i);
-						tempIncomeTable[i][j].done=true;
+						tempIncomeTable[i][j].setDone(true);
 						doneCounter++;
 					}
 
@@ -226,10 +226,10 @@ public class Main {
 		int[][] changesTable = new int[nSuppliers+1][nClients+1];
 		for(int i=0; i<nSuppliers+1; i++)
 			for(int j=0; j<nClients+1; j++) {
-				if (tempIncomeTable[i][j].amountSent != -1)
+				if (tempIncomeTable[i][j].getAmountSent() != -1)
 					changesTable[i][j] = -10000;
 				else
-					changesTable[i][j] = (tempIncomeTable[i][j].income - alfas[i] - betas[j]);
+					changesTable[i][j] = (tempIncomeTable[i][j].getIncome() - alfas[i] - betas[j]);
 			}
 		System.out.println("changes: ");
 		for(int i = 0; i < 3; i ++)
