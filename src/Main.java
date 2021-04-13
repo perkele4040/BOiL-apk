@@ -94,7 +94,7 @@ public class Main {
 			//if all cells done = stop looking
 			if (tempIncome == -10000)
 				break;
-			System.out.println("wybrano income = "+tempIncome);
+			System.out.println("chosen income = "+tempIncome);
 			//computing the amount available to be sent on this path
 			if (tempIncomeTable[iMax][jMax].getWhereFrom().getSupply() > tempIncomeTable[iMax][jMax].getWhereTo().getDemand())
 				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereTo().getDemand());
@@ -120,7 +120,6 @@ public class Main {
 						tempIncomeTable[iMax][j].setDone(true);
 					}
 
-			//printing the table for quality control :)
 			printIncomeTable(tempIncomeTable, nSuppliers, nClients);
 		} //the whole table of real suppliers/clients have been processed
 
@@ -152,73 +151,101 @@ public class Main {
 
 		printIncomeTable(tempIncomeTable, nSuppliers, nClients);
 
-		int[] alfas = new int[nSuppliers+1];
-		for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
-		int[] betas = new int[nClients+1];
-		for(int j=0; j<nClients+1; j++) betas[j] = -10000;
-		alfas[0] = 0;
-		for(int i=0; i<nSuppliers+1; i++)
-			for(int j=0; j<nClients+1; j++)
-				tempIncomeTable[i][j].setDone(false);
-
-		int doneCounter=1;
-		while( doneCounter < (nClients+nSuppliers+2) )
-		for(int i=0; i<nSuppliers+1; i++)
-			for(int j=0; j<nClients+1; j++)
-			{
-				if(!tempIncomeTable[i][j].isDone() && tempIncomeTable[i][j].getAmountSent()!=-1)
-				{
-					if(alfas[i]!=-10000)
-					{
-
-						betas[j] = tempIncomeTable[i][j].getIncome() - alfas[i];
-						System.out.println("zmieniłem betas nr "+j);
-						tempIncomeTable[i][j].setDone(true);
-						doneCounter++;
-					}
-					else if(betas[j]!=-10000)
-					{
-						alfas[i] = tempIncomeTable[i][j].getIncome() - betas[j];
-						System.out.println("zmieniłem alfa nr "+i);
-						tempIncomeTable[i][j].setDone(true);
-						doneCounter++;
-					}
-
-					/*for(int k=0; k<nSuppliers+1; k++)
-						tempIncomeTable[k][j].done=true;
-					for(int k=0; k<nClients+1; k++)
-						tempIncomeTable[i][k].done=true;*/
-					System.out.println("alfas:  ");
-					for(int z=0; z<nSuppliers+1; z++) { System.out.print(alfas[z]); System.out.print("   "); }
-					System.out.println("\nbetas:  ");
-					for(int z=0; z<nClients+1; z++) { System.out.print(betas[z]); System.out.print("   "); }
-					System.out.println("\ndoneCounter= "+doneCounter);
-				}
-			}
-
-
-		int[][] changesTable = new int[nSuppliers+1][nClients+1];
-		for(int i=0; i<nSuppliers+1; i++)
-			for(int j=0; j<nClients+1; j++) {
-				if (tempIncomeTable[i][j].getAmountSent() != -1)
-					changesTable[i][j] = -10000;
-				else
-					changesTable[i][j] = (tempIncomeTable[i][j].getIncome() - alfas[i] - betas[j]);
-			}
-		System.out.println("changes: ");
-		for(int i = 0; i < 3; i ++)
+		/*do
 		{
-			for(int j = 0; j < 4; j++)
+			//reset demand/supply and done attributes for next iteration
+			for(int i=0; i<nSuppliers+1; i++) {
+				tempIncomeTable[i][0].setWhereFrom(incomeTable[i][0].getWhereFrom());
+				for(int j=0; j<nClients+1; j++)
+					tempIncomeTable[i][j].setDone(false);
+				for(int j=0; j<nClients+1; j++)
+					tempIncomeTable[0][j].setWhereTo(incomeTable[0][j].getWhereTo());
+
+			}*/
+
+		boolean optimised;
+		do {
+			//figuring out alfas and betas and building an array for petla zmian :)
+			int[] alfas = new int[nSuppliers+1];
+			for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
+			int[] betas = new int[nClients+1];
+			for(int j=0; j<nClients+1; j++) betas[j] = -10000;
+			alfas[0] = 0;
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++)
+					tempIncomeTable[i][j].setDone(false);
+
+			int doneCounter=1;
+			while( doneCounter < (nClients+nSuppliers+2) )
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++)
+				{
+					if(!tempIncomeTable[i][j].isDone() && tempIncomeTable[i][j].getAmountSent()!=-1)
+					{
+						if(alfas[i]!=-10000)
+						{
+
+							betas[j] = tempIncomeTable[i][j].getIncome() - alfas[i];
+							System.out.println("changed beta nr "+j);
+							tempIncomeTable[i][j].setDone(true);
+							doneCounter++;
+						}
+						else if(betas[j]!=-10000)
+						{
+							alfas[i] = tempIncomeTable[i][j].getIncome() - betas[j];
+							System.out.println("changed alfa nr "+i);
+							tempIncomeTable[i][j].setDone(true);
+							doneCounter++;
+						}
+
+						/*for(int k=0; k<nSuppliers+1; k++)
+							tempIncomeTable[k][j].done=true;
+						for(int k=0; k<nClients+1; k++)
+							tempIncomeTable[i][k].done=true;*/
+						System.out.println("alfas:  ");
+						for(int z=0; z<nSuppliers+1; z++) { System.out.print(alfas[z]); System.out.print("   "); }
+						System.out.println("\nbetas:  ");
+						for(int z=0; z<nClients+1; z++) { System.out.print(betas[z]); System.out.print("   "); }
+						System.out.println("\ndoneCounter= "+doneCounter);
+						System.out.println("--------------\n");
+					}
+				}
+
+
+			int[][] changesTable = new int[nSuppliers+1][nClients+1];
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++) {
+					if (tempIncomeTable[i][j].getAmountSent() != -1)
+						changesTable[i][j] = -10000;
+					else
+						changesTable[i][j] = (tempIncomeTable[i][j].getIncome() - alfas[i] - betas[j]);
+				}
+			System.out.println("changes: ");
+			for(int i = 0; i < nSuppliers+1; i ++)
 			{
-				System.out.print(changesTable[i][j]);
-				System.out.print("  ");
+				for(int j = 0; j < nClients+1; j++)
+				{
+					System.out.print(changesTable[i][j]);
+					System.out.print("  ");
+				}
+				System.out.println();
 			}
-			System.out.println();
-		}
+
+			optimised = true;
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++)
+					if(changesTable[i][j] > 0)
+						optimised = false;
+
+		//tutaj petla zmian
+
+		} while(!optimised);
+		//iterates until all numbers in changesTable are <= 0
+
 
     }
 
-	public static void printIncomeTable(Income[][] tempIncomeTable, int nSuppliers, int nClients) {
+	private static void printIncomeTable(Income[][] tempIncomeTable, int nSuppliers, int nClients) {
 		System.out.println("Przesłane: ");
 		System.out.print("     ");
 		for(int j=0; j<nClients+1; j++)
