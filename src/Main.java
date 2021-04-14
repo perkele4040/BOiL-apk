@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 //put data in data.txt file in this order:
@@ -77,7 +78,7 @@ public class Main {
 		for(int i=0; i<nSuppliers+1; i++)
 			System.arraycopy(incomeTable[i], 0, tempIncomeTable[i], 0, nClients + 1);
 
-		while(1==1) {
+		while(true) {
 			//finding a cell with highest income
 			int iMax = 0, jMax = 0;
 			int tempIncome = -10000;
@@ -148,6 +149,7 @@ public class Main {
 		tempIncomeTable[nSuppliers][nClients].setAmountSent(tempIncomeTable[nSuppliers][nClients].getWhereTo().getDemand());
 		tempIncomeTable[nSuppliers][nClients].getWhereTo().setDemand(0);
 		tempIncomeTable[nSuppliers][nClients].getWhereFrom().setSupply(0);
+		//all product has been assigned to paths
 
 		printIncomeTable(tempIncomeTable, nSuppliers, nClients);
 
@@ -164,7 +166,7 @@ public class Main {
 			}*/
 
 		boolean optimised;
-		do {
+		while(true) {
 			//figuring out alfas and betas and building an array for petla zmian :)
 			int[] alfas = new int[nSuppliers+1];
 			for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
@@ -220,6 +222,7 @@ public class Main {
 					else
 						changesTable[i][j] = (tempIncomeTable[i][j].getIncome() - alfas[i] - betas[j]);
 				}
+
 			System.out.println("changes: ");
 			for(int i = 0; i < nSuppliers+1; i ++)
 			{
@@ -231,17 +234,79 @@ public class Main {
 				System.out.println();
 			}
 
+			int overallIncome = 0;
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++)
+					if(tempIncomeTable[i][j].getAmountSent()!=-1)
+						overallIncome+=tempIncomeTable[i][j].getAmountSent()*tempIncomeTable[i][j].getIncome();
+			System.out.println("Overall income = "+overallIncome);
+
 			optimised = true;
 			for(int i=0; i<nSuppliers+1; i++)
 				for(int j=0; j<nClients+1; j++)
 					if(changesTable[i][j] > 0)
 						optimised = false;
+			if(optimised) break;
 
-		//tutaj petla zmian
+			int iMax=0, jMax=0;
+			//znalezienie najwiekszego
+			for(int i=0; i<nSuppliers+1; i++)
+				for(int j=0; j<nClients+1; j++)
+					if(changesTable[i][j] > changesTable[iMax][jMax])
+					{
+						iMax=i;
+						jMax=j;
+					}
+			System.out.println("max in changesTable: "+changesTable[iMax][jMax]);
 
-		} while(!optimised);
+			int[] indexesForChange = new int [8];
+			indexesForChange[0] = iMax;
+			indexesForChange[1] = jMax;
+			//finding appropriate cells for petla zmian ::)
+			for(int i=0; i<nSuppliers+1; i++)
+				if(changesTable[i][jMax]==-10000 && i!=iMax) {
+					indexesForChange[2] = i;
+					indexesForChange[3] = jMax;
+					for (int j = 0; j < nClients + 1; j++) {
+						if(changesTable[i][j]==-10000 && j!=jMax)
+						{
+							indexesForChange[4]=i;
+							indexesForChange[5]=j;
+							if(changesTable[iMax][j]==-10000)
+							{
+								indexesForChange[6]=iMax;
+								indexesForChange[7]=j;
+							}
+						}
+					}
+				}
+			System.out.println("wybrane indeksy: ");
+			System.out.print(Arrays.toString(indexesForChange));
+
+			int delta=tempIncomeTable[indexesForChange[2]][indexesForChange[3]].getAmountSent();
+			if( tempIncomeTable[indexesForChange[6]][indexesForChange[7]].getAmountSent() < delta )
+				delta = tempIncomeTable[indexesForChange[6]][indexesForChange[7]].getAmountSent();
+			for(int i=0; i<8; i+=4)
+			{
+				if(tempIncomeTable[indexesForChange[i]][indexesForChange[i+1]].getAmountSent() == -1)
+					tempIncomeTable[indexesForChange[i]][indexesForChange[i+1]].setAmountSent(delta);
+				else
+					tempIncomeTable[indexesForChange[i]][indexesForChange[i+1]].addAmountSent(delta);
+				if(tempIncomeTable[indexesForChange[i+2]][indexesForChange[i+3]].getAmountSent() == delta)
+					tempIncomeTable[indexesForChange[i+2]][indexesForChange[i+3]].setAmountSent(-1);
+				else
+					tempIncomeTable[indexesForChange[i+2]][indexesForChange[i+3]].subsAmountSent(delta);
+			}
+			printIncomeTable(tempIncomeTable, nSuppliers, nClients);
+
+
+
+		//break;
+		}
 		//iterates until all numbers in changesTable are <= 0
 
+		//zaczac od najwiekszego && >0
+		//
 
     }
 
