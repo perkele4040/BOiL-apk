@@ -6,6 +6,7 @@ public class Income {
     private int income;
     private boolean done;
     private int amountSent;
+    private boolean blocked;
     public Income(int income, Supplier whereFrom, Client whereTo)
     {
         this.done=false;
@@ -13,6 +14,7 @@ public class Income {
         this.whereFrom = whereFrom;
         this.whereTo = whereTo;
         this.amountSent = 0;
+        this.blocked=false;
     }
 
     public Supplier getWhereFrom() {
@@ -70,4 +72,16 @@ public class Income {
     public void subsAmountSent(int delta) {
         this.amountSent -= delta;
     }
+
+    public boolean isBlocked()
+    {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked)
+    {
+        this.blocked = blocked;
+    }
 }
+
+

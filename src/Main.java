@@ -51,6 +51,7 @@ public class Main {
 			for(int j=0; j<nClients; j++)
 				incomeTable[i][j] = new Income(clients[j].getBuyingPrice() - suppliers[i].getSellingPrice() - transportCostTable[i][j], suppliers[i], clients[j]);
 
+
 		//test case 2
 		/*incomeTable[0][0] = new Income(3, supplier1, client1);
 		incomeTable[0][1] = new Income(9, supplier1, client2);
@@ -73,10 +74,23 @@ public class Main {
 			incomeTable[nSuppliers][j] = new Income(0, overallSupply, clients[j]);
 		incomeTable[nSuppliers][nClients] = new Income(0, overallSupply, overallDemand);
 
+
+		//block tracks
+		int i_blocked = Integer.parseInt(readData.nextLine());
+		int j_blocked = Integer.parseInt(readData.nextLine());
+		incomeTable[i_blocked][j_blocked].setBlocked(true);
+		incomeTable[i_blocked][j_blocked].setDone(true);
+		incomeTable[i_blocked][j_blocked].setAmountSent(-10000);
+		readData.close();
+
+
+
 		//copying the income table to enable changes in data
 		Income[][] tempIncomeTable = new Income[nSuppliers+1][nClients+1];
 		for(int i=0; i<nSuppliers+1; i++)
 			System.arraycopy(incomeTable[i], 0, tempIncomeTable[i], 0, nClients + 1);
+
+
 
 		while(true) {
 			//finding a cell with highest income
@@ -90,6 +104,7 @@ public class Main {
 						tempIncome = tempIncomeTable[iMax][jMax].getIncome();
 					}
 				}
+
 
 
 			//if all cells done = stop looking
