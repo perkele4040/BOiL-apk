@@ -74,43 +74,59 @@ public class Main {
 			incomeTable[nSuppliers][j] = new Income(0, overallSupply, clients[j]);
 		incomeTable[nSuppliers][nClients] = new Income(0, overallSupply, overallDemand);
 
-
 		//block tracks
 		int i_blocked = Integer.parseInt(readData.nextLine());
 		int j_blocked = Integer.parseInt(readData.nextLine());
 		incomeTable[i_blocked][j_blocked].setBlocked(true);
 		incomeTable[i_blocked][j_blocked].setDone(true);
-		incomeTable[i_blocked][j_blocked].setAmountSent(-10000);
+		incomeTable[i_blocked][j_blocked].setAmountSent(-1);
+		incomeTable[i_blocked][j_blocked].setIncome(-9999);
 		readData.close();
-
-
 
 		//copying the income table to enable changes in data
 		Income[][] tempIncomeTable = new Income[nSuppliers+1][nClients+1];
 		for(int i=0; i<nSuppliers+1; i++)
 			System.arraycopy(incomeTable[i], 0, tempIncomeTable[i], 0, nClients + 1);
 
-
+		//resolving column with blocked path first
+		boolean blockedPathDone;
 
 		while(true) {
 			//finding a cell with highest income
 			int iMax = 0, jMax = 0;
 			int tempIncome = -10000;
+
+			blockedPathDone=true;
 			for (int i = 0; i < nSuppliers; i++)
-				for (int j = 0; j < nClients; j++) {
-					if (tempIncomeTable[i][j].getIncome() > tempIncome && !tempIncomeTable[i][j].isDone()) {
+				if(!tempIncomeTable[i][j_blocked].isDone())
+					blockedPathDone=false;
+
+			if(!blockedPathDone)
+			{
+				jMax=j_blocked;
+				for (int i = 0; i < nSuppliers; i++)
+					if (tempIncomeTable[i][jMax].getIncome() > tempIncome && !tempIncomeTable[i][jMax].isDone()) {
 						iMax = i;
-						jMax = j;
 						tempIncome = tempIncomeTable[iMax][jMax].getIncome();
 					}
-				}
+			}
+			else {
 
-
+				for (int i = 0; i < nSuppliers; i++)
+					for (int j = 0; j < nClients; j++) {
+						if (tempIncomeTable[i][j].getIncome() > tempIncome && !tempIncomeTable[i][j].isDone()) {
+							iMax = i;
+							jMax = j;
+							tempIncome = tempIncomeTable[iMax][jMax].getIncome();
+						}
+					}
+			}
 
 			//if all cells done = stop looking
 			if (tempIncome == -10000)
 				break;
 			System.out.println("chosen income = "+tempIncome);
+
 			//computing the amount available to be sent on this path
 			if (tempIncomeTable[iMax][jMax].getWhereFrom().getSupply() > tempIncomeTable[iMax][jMax].getWhereTo().getDemand())
 				tempIncomeTable[iMax][jMax].setAmountSent(tempIncomeTable[iMax][jMax].getWhereTo().getDemand());
@@ -137,7 +153,7 @@ public class Main {
 					}
 
 			printIncomeTable(tempIncomeTable, nSuppliers, nClients);
-		} //the whole table of real suppliers/clients have been processed
+		} //the whole table of real suppliers/clients has been processed
 
 		//splitting the remaining supply/demand between the fictional characters
 		for(int i=0; i<nSuppliers; i++)
@@ -183,50 +199,51 @@ public class Main {
 		boolean optimised;
 		while(true) {
 			//figuring out alfas and betas and building an array for petla zmian :)
-			int[] alfas = new int[nSuppliers+1];
-			for(int i=0; i<nSuppliers+1; i++) alfas[i] = -10000;
-			int[] betas = new int[nClients+1];
-			for(int j=0; j<nClients+1; j++) betas[j] = -10000;
+			int[] alfas = new int[nSuppliers + 1];
+			for (int i = 0; i < nSuppliers + 1; i++) alfas[i] = -10000;
+			int[] betas = new int[nClients + 1];
+			for (int j = 0; j < nClients + 1; j++) betas[j] = -10000;
 			alfas[0] = 0;
-			for(int i=0; i<nSuppliers+1; i++)
-				for(int j=0; j<nClients+1; j++)
+			for (int i = 0; i < nSuppliers + 1; i++)
+				for (int j = 0; j < nClients + 1; j++)
 					tempIncomeTable[i][j].setDone(false);
 
-			int doneCounter=1;
-			while( doneCounter < (nClients+nSuppliers+2) )
-			for(int i=0; i<nSuppliers+1; i++)
-				for(int j=0; j<nClients+1; j++)
-				{
-					if(!tempIncomeTable[i][j].isDone() && tempIncomeTable[i][j].getAmountSent()!=-1)
-					{
-						if(alfas[i]!=-10000)
-						{
+			int doneCounter = 1;
+			while (doneCounter < (nClients + nSuppliers + 2))
+				for (int i = 0; i < nSuppliers + 1; i++)
+					for (int j = 0; j < nClients + 1; j++) {
+						if (!tempIncomeTable[i][j].isDone() && tempIncomeTable[i][j].getAmountSent() != -1) {
+							if (alfas[i] != -10000) {
 
-							betas[j] = tempIncomeTable[i][j].getIncome() - alfas[i];
-							System.out.println("changed beta nr "+j);
-							tempIncomeTable[i][j].setDone(true);
-							doneCounter++;
-						}
-						else if(betas[j]!=-10000)
-						{
-							alfas[i] = tempIncomeTable[i][j].getIncome() - betas[j];
-							System.out.println("changed alfa nr "+i);
-							tempIncomeTable[i][j].setDone(true);
-							doneCounter++;
-						}
+								betas[j] = tempIncomeTable[i][j].getIncome() - alfas[i];
+								System.out.println("changed beta nr " + j);
+								tempIncomeTable[i][j].setDone(true);
+								doneCounter++;
+							} else if (betas[j] != -10000) {
+								alfas[i] = tempIncomeTable[i][j].getIncome() - betas[j];
+								System.out.println("changed alfa nr " + i);
+								tempIncomeTable[i][j].setDone(true);
+								doneCounter++;
+							}
 
 						/*for(int k=0; k<nSuppliers+1; k++)
 							tempIncomeTable[k][j].done=true;
 						for(int k=0; k<nClients+1; k++)
 							tempIncomeTable[i][k].done=true;*/
-						System.out.println("alfas:  ");
-						for(int z=0; z<nSuppliers+1; z++) { System.out.print(alfas[z]); System.out.print("   "); }
-						System.out.println("\nbetas:  ");
-						for(int z=0; z<nClients+1; z++) { System.out.print(betas[z]); System.out.print("   "); }
-						System.out.println("\ndoneCounter= "+doneCounter);
-						System.out.println("--------------\n");
+							System.out.println("alfas:  ");
+							for (int z = 0; z < nSuppliers + 1; z++) {
+								System.out.print(alfas[z]);
+								System.out.print("   ");
+							}
+							System.out.println("\nbetas:  ");
+							for (int z = 0; z < nClients + 1; z++) {
+								System.out.print(betas[z]);
+								System.out.print("   ");
+							}
+							System.out.println("\ndoneCounter= " + doneCounter);
+							System.out.println("--------------\n");
+						}
 					}
-				}
 
 
 			int[][] changesTable = new int[nSuppliers+1][nClients+1];
@@ -234,6 +251,8 @@ public class Main {
 				for(int j=0; j<nClients+1; j++) {
 					if (tempIncomeTable[i][j].getAmountSent() != -1)
 						changesTable[i][j] = -10000;
+					else if(i==i_blocked && j==j_blocked)
+						changesTable[i][j] = -9999;
 					else
 						changesTable[i][j] = (tempIncomeTable[i][j].getIncome() - alfas[i] - betas[j]);
 				}
@@ -264,7 +283,7 @@ public class Main {
 			if(optimised) break;
 
 			int iMax=0, jMax=0;
-			//znalezienie najwiekszego
+			//finding the worst cell ( highest > 0 )
 			for(int i=0; i<nSuppliers+1; i++)
 				for(int j=0; j<nClients+1; j++)
 					if(changesTable[i][j] > changesTable[iMax][jMax])
@@ -313,20 +332,12 @@ public class Main {
 					tempIncomeTable[indexesForChange[i+2]][indexesForChange[i+3]].subsAmountSent(delta);
 			}
 			printIncomeTable(tempIncomeTable, nSuppliers, nClients);
-
-
-
-		//break;
 		}
-		//iterates until all numbers in changesTable are <= 0
-
-		//zaczac od najwiekszego && >0
-		//
 
     }
 
 	private static void printIncomeTable(Income[][] tempIncomeTable, int nSuppliers, int nClients) {
-		System.out.println("Przesłane: ");
+		System.out.println("\nIncome Table: ");
 		System.out.print("     ");
 		for(int j=0; j<nClients+1; j++)
 		{
